@@ -14,10 +14,6 @@ np.set_printoptions(suppress=True)
 
 coco_labels = json.load(open('coco_labels.json'))
 
-reader = csv.reader(open('aiy_birds_V1_labelmap.csv'))
-next(reader, None) # skip header
-birds_dict = dict((int(rows[0]),rows[1]) for rows in reader)
-
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
@@ -33,11 +29,6 @@ class NumpyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 ssd = hub.load("https://tfhub.dev/tensorflow/ssd_mobilenet_v2/fpnlite_320x320/1")
-
-birds_V1 = 'https://tfhub.dev/google/aiy/vision/classifier/birds_V1/1'
-model_species = tf.keras.Sequential([
-        hub.KerasLayer(birds_V1, input_shape=S224+(3,))
-        ])
 
 model_yn1 = tf.keras.models.load_model('yn1_model.h5')
 model_eye = tf.keras.models.load_model('eye_crop_model.h5')
@@ -56,13 +47,6 @@ def bird_eye(oc):
     ia = tf.keras.preprocessing.image.img_to_array(oc)
     iae = tf.expand_dims(ia, 0)
     return model_eye.predict(iae)[0][0]
-
-def bird(im):
-    #im = img.resize(S224)
-    im = np.array(im)/255.0
-    p = model_species.predict(im[np.newaxis, ...])[0]
-    i = np.argmax(p)
-    return {'id':i, 'p':p[i], 'name':birds_dict[i]}
 
 def detect_objects(image_filename):
     o = PIL.Image.open(image_filename)
@@ -93,8 +77,8 @@ def detect_objects(image_filename):
             'label':label,
             'oc':oc,
             'sharpness':sharpness(oc224),
-            'eye':bird_eye(oc224),
-            'bird':bird(oc224)})
+            'eye':bird_eye(oc224)
+            })
     return ret
 
 def find_birds(original_image, plt_image):
