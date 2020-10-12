@@ -1,0 +1,12 @@
+[Unit]
+Description=Bird photo prediction
+Conflicts=birdwatch-stop.service
+
+[Service]
+Environment=FLASK_APP=pred.py
+ExecStart=/usr/bin/python3 -m flask run
+KillSignal=SIGTERM
+WorkingDirectory=/home/birds/birdpred
+
+[Install]
+WantedBy=default.target
