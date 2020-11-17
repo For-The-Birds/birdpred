@@ -97,8 +97,14 @@ def find_birds(original_image, plt_image):
         plt.savefig(plt_image)
         plt.close()
 
-    #max_eye = np.max([ d['eye'] for d in detections ])
-    return detections
+    ret = {}
+    ret['detections'] = detections
+    eyes = [ d['eye'] for d in detections ]
+    if len(eyes) > 0:
+        ret['avg_eye'] = np.average(eyes)
+        ret['max_eye'] = np.max(eyes)
+        ret['min_eye'] = np.min(eyes)
+    return ret
 
 @app.route('/yesnobird1', methods=['POST'])
 def yesno1():
@@ -113,7 +119,7 @@ def fb():
     ret = find_birds(request.form['filename'], request.form.get('plt_filename'))
     if 'save_crop' in request.form:
         i=0
-        for d in ret:
+        for d in ret['detections']:
             ocfn = "{}/{:04.02f}-{:04.02f}-{}-{}.jpg".format(
                     request.form['save_crop'],
                     d['eye'],
